@@ -1,5 +1,5 @@
 #include <Arduino.h>
-
+//Device: AI Thinker ESP32-CAM
 void setup() {
   // put your setup code here, to run once:
   pinMode(4, OUTPUT);

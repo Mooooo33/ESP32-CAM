@@ -4,15 +4,15 @@
     Ported to Arduino ESP32 by Evandro Copercini
 
    Create a BLE server that, once we receive a connection, will send periodic notifications.
-   ´´½¨Ò»¸öBLE·şÎñÆ÷£¬Ò»µ©ÎÒÃÇÊÕµ½Á¬½Ó£¬½«»áÖÜÆÚĞÔ·¢ËÍÍ¨Öª
+   åˆ›å»ºä¸€ä¸ªBLEæœåŠ¡å™¨ï¼Œä¸€æ—¦æˆ‘ä»¬æ”¶åˆ°è¿æ¥ï¼Œå°†ä¼šå‘¨æœŸæ€§å‘é€é€šçŸ¥
 
-   TÊ¹ÓÃ²½Öè£º
-   1. ´´½¨Ò»¸ö BLE Server
-   2. ´´½¨Ò»¸ö BLE Service
-   3. ´´½¨Ò»¸ö BLE Characteristic
-   4. ´´½¨Ò»¸ö BLE Descriptor
-   5. ¿ªÊ¼·şÎñ
-   6. ¿ªÊ¼¹ã²¥
+   Tä½¿ç”¨æ­¥éª¤ï¼š
+   1. åˆ›å»ºä¸€ä¸ª BLE Server
+   2. åˆ›å»ºä¸€ä¸ª BLE Service
+   3. åˆ›å»ºä¸€ä¸ª BLE Characteristic
+   4. åˆ›å»ºä¸€ä¸ª BLE Descriptor
+   5. å¼€å§‹æœåŠ¡
+   6. å¼€å§‹å¹¿æ’­
 
 
 */
@@ -24,10 +24,10 @@
 #include "common.h"
 
 uint8_t txValue = 0;
-BLEServer *pServer = NULL;                   //BLEServerÖ¸Õë pServer
-BLECharacteristic *pTxCharacteristic = NULL; //BLECharacteristicÖ¸Õë pTxCharacteristic
-bool deviceConnected = false;                //±¾´ÎÁ¬½Ó×´Ì¬
-bool oldDeviceConnected = false;             //ÉÏ´ÎÁ¬½Ó×´Ì¬
+BLEServer *pServer = NULL;                   //BLEServeræŒ‡é’ˆ pServer
+BLECharacteristic *pTxCharacteristic = NULL; //BLECharacteristicæŒ‡é’ˆ pTxCharacteristic
+bool deviceConnected = false;                //æœ¬æ¬¡è¿æ¥çŠ¶æ€
+bool oldDeviceConnected = false;             //ä¸Šæ¬¡è¿æ¥çŠ¶æ€
 
 // See the following for generating UUIDs: https://www.uuidgenerator.net/
 #define SERVICE_UUID "12a59900-17cc-11ec-9621-0242ac130002" // UART service UUID
@@ -51,10 +51,10 @@ class MyCallbacks : public BLECharacteristicCallbacks
 {
     void onWrite(BLECharacteristic *pCharacteristic)
     {
-        std::string rxValue = pCharacteristic->getValue(); //½ÓÊÕĞÅÏ¢
+        std::string rxValue = pCharacteristic->getValue(); //æ¥æ”¶ä¿¡æ¯
 
         if (rxValue.length() > 0)
-        { //Ïò´®¿ÚÊä³öÊÕµ½µÄÖµ
+        { //å‘ä¸²å£è¾“å‡ºæ”¶åˆ°çš„å€¼
             Serial.print("RX: ");
             for (int i = 0; i < rxValue.length(); i++)
                 Serial.print(rxValue[i]);
@@ -67,46 +67,46 @@ void setup()
 {
     Serial.begin(115200);
 
-    // ´´½¨Ò»¸ö BLE Éè±¸
+    // åˆ›å»ºä¸€ä¸ª BLE è®¾å¤‡
     BLEDevice::init("UART_BLE");
 
-    // ´´½¨Ò»¸ö BLE ·şÎñ
+    // åˆ›å»ºä¸€ä¸ª BLE æœåŠ¡
     pServer = BLEDevice::createServer();
-    pServer->setCallbacks(new MyServerCallbacks()); //ÉèÖÃ»Øµ÷
+    pServer->setCallbacks(new MyServerCallbacks()); //è®¾ç½®å›è°ƒ
     BLEService *pService = pServer->createService(SERVICE_UUID);
 
-    // ´´½¨Ò»¸ö BLE ÌØÕ÷
+    // åˆ›å»ºä¸€ä¸ª BLE ç‰¹å¾
     pTxCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID_TX, BLECharacteristic::PROPERTY_NOTIFY);
     pTxCharacteristic->addDescriptor(new BLE2902());
     BLECharacteristic *pRxCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID_RX, BLECharacteristic::PROPERTY_WRITE);
-    pRxCharacteristic->setCallbacks(new MyCallbacks()); //ÉèÖÃ»Øµ÷
+    pRxCharacteristic->setCallbacks(new MyCallbacks()); //è®¾ç½®å›è°ƒ
 
-    pService->start();                  // ¿ªÊ¼·şÎñ
-    pServer->getAdvertising()->start(); // ¿ªÊ¼¹ã²¥
-    Serial.println(" µÈ´ıÒ»¸ö¿Í»§¶ËÁ¬½Ó£¬ÇÒ·¢ËÍÍ¨Öª... ");
+    pService->start();                  // å¼€å§‹æœåŠ¡
+    pServer->getAdvertising()->start(); // å¼€å§‹å¹¿æ’­
+    Serial.println(" ç­‰å¾…ä¸€ä¸ªå®¢æˆ·ç«¯è¿æ¥ï¼Œä¸”å‘é€é€šçŸ¥... ");
 }
 
 void loop()
 {
-    // deviceConnected ÒÑÁ¬½Ó
+    // deviceConnected å·²è¿æ¥
     if (deviceConnected)
     {
-        pTxCharacteristic->setValue(&txValue, 1); // ÉèÖÃÒª·¢ËÍµÄÖµÎª1
-        pTxCharacteristic->notify();              // ¹ã²¥
-        txValue++;                                // Ö¸ÕëµØÖ·×Ô¼Ó1
-        delay(2000);                              // Èç¹ûÓĞÌ«¶à°üÒª·¢ËÍ£¬À¶ÑÀ»á¶ÂÈû
+        pTxCharacteristic->setValue(&txValue, 1); // è®¾ç½®è¦å‘é€çš„å€¼ä¸º1
+        pTxCharacteristic->notify();              // å¹¿æ’­
+        txValue++;                                // æŒ‡é’ˆåœ°å€è‡ªåŠ 1
+        delay(2000);                              // å¦‚æœæœ‰å¤ªå¤šåŒ…è¦å‘é€ï¼Œè“ç‰™ä¼šå µå¡
     }
 
-    // disconnecting  ¶Ï¿ªÁ¬½Ó
+    // disconnecting  æ–­å¼€è¿æ¥
     if (!deviceConnected && oldDeviceConnected)
     {
-        delay(500);                  // ÁôÊ±¼ä¸øÀ¶ÑÀ»º³å
-        pServer->startAdvertising(); // ÖØĞÂ¹ã²¥
-        Serial.println(" ¿ªÊ¼¹ã²¥ ");
+        delay(500);                  // ç•™æ—¶é—´ç»™è“ç‰™ç¼“å†²
+        pServer->startAdvertising(); // é‡æ–°å¹¿æ’­
+        Serial.println(" å¼€å§‹å¹¿æ’­ ");
         oldDeviceConnected = deviceConnected;
     }
 
-    // connecting  ÕıÔÚÁ¬½Ó
+    // connecting  æ­£åœ¨è¿æ¥
     if (deviceConnected && !oldDeviceConnected)
     {
         // do stuff here on connecting
